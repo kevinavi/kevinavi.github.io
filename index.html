@@ -1,12 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Avinash's Resume</title>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="UTF-8">
+  <title>Avinash's Resume</title>
 </head>
 <body>
-    <iframe style="position: absolute; height: 100%" src= "https://kevinavi.github.io/avinashnaikkethavath.pdf" />
+
+<canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.8.335/build/pdf.min.js"></script>
+
+<script id="script">
+  //
+  // If absolute URL from the remote server is provided, configure the CORS
+  // header on that server.
+  //
+  var url = 'https://kevinavi.github.io/avinashnaikkethavath.pdf';
+
+  //
+  // The workerSrc property shall be specified.
+  //
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.8.335/build/pdf.worker.min.js';
+
+  //
+  // Asynchronous download PDF
+  //
+  var loadingTask = pdfjsLib.getDocument(url);
+  loadingTask.promise.then(function(pdf) {
+    //
+    // Fetch the first page
+    //
+    pdf.getPage(1).then(function(page) {
+      var scale = 1.5;
+      var viewport = page.getViewport({ scale: scale, });
+
+      //
+      // Prepare canvas using PDF page dimensions
+      //
+      var canvas = document.getElementById('the-canvas');
+      var context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      //
+      // Render PDF page into canvas context
+      //
+      var renderContext = {
+        canvasContext: context,
+        viewport: viewport,
+      };
+      page.render(renderContext);
+    });
+  });
+</script>
 </body>
 </html>

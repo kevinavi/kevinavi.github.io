@@ -3,10 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <title>Avinash's Resume</title>
+  <style>
+  #pdf-viewer {
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    overflow: auto;
+  }
+
+  .pdf-page-canvas {
+    display: block;
+    margin: 5px auto;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+</style>
 </head>
 <body>
 
-<canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
+<canvas id="pdf-viewer"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.8.335/build/pdf.min.js"></script>
 
@@ -23,49 +37,28 @@
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.8.335/build/pdf.worker.min.js';
 
-  var currPage = 1; //Pages are 1-based not 0-based
-  var numPages = 0;
-  var thePDF = null;
+  var thePdf = null;
+  var scale = 1;
 
-  //This is where you start
-  pdfjsLib.getDocument(url).then(function(pdf) {
+  pdfjsLib.getDocument(url).promise.then(function(pdf) {
+      thePdf = pdf;
+      viewer = document.getElementById('pdf-viewer');
 
-          //Set PDFJS global object (so we can easily access in our page functions
-          thePDF = pdf;
-
-          //How many pages it has
-          numPages = pdf.numPages;
-
-          //Start with first page
-          pdf.getPage(1).then(handlePages);
+      for(page = 1; page <= pdf.numPages; page++) {
+        canvas = document.createElement("canvas");    
+        canvas.className = 'pdf-page-canvas';         
+        viewer.appendChild(canvas);            
+        renderPage(page, canvas);
+      }
   });
 
-
-
-  function handlePages(page)
-  {
-      //This gives us the page's dimensions at full scale
-      var viewport = page.getViewport( 1 );
-
-      //We'll create a canvas for each page to draw it on
-      var canvas = document.createElement( "canvas" );
-      canvas.style.display = "block";
-      var context = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      //Draw it on the canvas
-      page.render({canvasContext: context, viewport: viewport});
-
-      //Add it to the web page
-      document.body.appendChild( canvas );
-
-      //Move to next page
-      currPage++;
-      if ( thePDF !== null && currPage <= numPages )
-      {
-          thePDF.getPage( currPage ).then( handlePages );
-      }
+  function renderPage(pageNumber, canvas) {
+      thePdf.getPage(pageNumber).then(function(page) {
+        viewport = page.getViewport(scale);
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;          
+        page.render({canvasContext: canvas.getContext('2d'), viewport: viewport});
+    });
   }
 </script>
 </body>
